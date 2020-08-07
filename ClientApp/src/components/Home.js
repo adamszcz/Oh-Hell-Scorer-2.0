@@ -3,71 +3,115 @@ import { useState } from 'react';
 
 export function Home() {
     const [gameData, setGameData] = useState({
-        numRounds: 0,
         numPlayers: 1,
+        numRounds: 52,
         players: [],
     });
 
     const [newPlayer, setNewPlayer] = useState("");
 
+    function handleAddPlayer() {
+
+        let player = {
+            name: newPlayer,
+            score: 0
+        }
+
+        gameData.players.push(player);
+
+        setGameData({
+            numPlayers: gameData.numPlayers+1,
+            numRounds: getNumRounds(gameData.numPlayers+1),
+            players: gameData.players
+        })
+    }
+    function handleRemovePlayer() {
+
+        gameData.players.pop();
+
+        setGameData({
+            numPlayers: gameData.numPlayers-1,
+            numRounds: getNumRounds(gameData.numPlayers-1),
+            players: gameData.players
+        })
+    }
     return (
         <div>
             <input 
                 type="text" 
-                id="playerName"
                 onChange={(event) => setNewPlayer(event.target.value)}
                 value={newPlayer}/>
 
             <p>number of players: {gameData.numPlayers}</p>
             <p>number of rounds: {gameData.numRounds}</p>
-            <ul>
-                {gameData.players.map((player =>
-                    <li>{player}</li>   
-                ))}
-            </ul>
             <input 
                 type="button" 
-                onClick={() => setGameData({
-                        numPlayers: gameData.numPlayers+1,
-                        numRounds: getNumRounds(gameData.numPlayers),
-                        players: addPlayer(gameData.players, newPlayer)
-                    })} 
+                onClick={() => handleAddPlayer()} 
                 value="add player"/>
             <input 
                 type="button"
-                onClick={() => setGameData({
-                        numPlayers: gameData.numPlayers-1,
-                        numRounds: getNumRounds(gameData.numPlayers)
-                    })}
+                onClick={() => handleRemovePlayer()}
+                disabled={numPlayersTooLow(gameData.numPlayers)}
                 value="remove player"/>
+            <div>
+                {renderGameBoard(gameData)}
+            </div>
         </div>
     )
 }
 
-function renderGameBoard(gameData) {
+function numPlayersTooLow(numPlayers) {
+ if(numPlayers === 1)
+ {
+     return true;
+ }
+ else
+ {
+     return false;
+ }
+}
+function renderCells(gameData, i) {
     return (
-        <table>
-            <thead>
-                {gameData.players.map((player) =>
-                    <td>{player.name}</td>    
-                )}
-            </thead>
-            <tbody>
-                
-            </tbody>
-        </table>
+        gameData.players.map((player) =>
+            <td key={gameData.players.indexOf(player)}>
+                {player.name}
+            </td>
+        )
     )
 }
-
-function addPlayer(players, newPlayer) {
-    let player = {
-        name: newPlayer,
-        score: 0
+function renderRows(gameData) {
+    let html = [];
+    for (var i = 1; i <= gameData.numRounds; i++) {
+        html.push(
+            <tr key={i}>
+                <td>round {i}</td>
+                {renderCells(gameData, i)}
+            </tr>
+        )
     }
-
-    players.push(player);
-    return players;
+    return html;
 }
+
+function renderGameBoard(gameData) {
+    let html;
+    if (gameData.players.length > 0) {
+        html = <table className="table">
+                    <thead className="thead"> 
+                        <tr>
+                            <th></th>
+                            {gameData.players.map((player) =>
+                                <th key={gameData.players.indexOf(player) + "head"}>{player.name}</th>    
+                            )}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {renderRows(gameData)}
+                    </tbody>
+                </table>
+    }
+    return (html)
+}
+
 function getNumRounds(numPlayers) {
     let numRounds = Math.floor(52/numPlayers);
     return numRounds;
