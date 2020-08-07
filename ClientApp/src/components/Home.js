@@ -11,30 +11,27 @@ export function Home() {
     const [newPlayer, setNewPlayer] = useState("");
 
     function handleAddPlayer() {
-
         let player = {
             name: newPlayer,
             score: 0
         }
-
         gameData.players.push(player);
-
         setGameData({
             numPlayers: gameData.numPlayers+1,
             numRounds: getNumRounds(gameData.numPlayers+1),
             players: gameData.players
         })
     }
+
     function handleRemovePlayer() {
-
         gameData.players.pop();
-
         setGameData({
             numPlayers: gameData.numPlayers-1,
             numRounds: getNumRounds(gameData.numPlayers-1),
             players: gameData.players
         })
     }
+
     return (
         <div>
             <input 
@@ -47,6 +44,7 @@ export function Home() {
             <input 
                 type="button" 
                 onClick={() => handleAddPlayer()} 
+                disabled={numPlayersTooHigh(gameData.numPlayers)}
                 value="add player"/>
             <input 
                 type="button"
@@ -60,16 +58,28 @@ export function Home() {
     )
 }
 
-function numPlayersTooLow(numPlayers) {
- if(numPlayers === 1)
- {
-     return true;
- }
- else
- {
-     return false;
- }
+function numPlayersTooHigh(numPlayers) {
+    if(numPlayers === 15)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }   
 }
+
+function numPlayersTooLow(numPlayers) {
+    if(numPlayers === 1)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 function renderCells(gameData, i) {
     return (
         gameData.players.map((player) =>
@@ -79,6 +89,7 @@ function renderCells(gameData, i) {
         )
     )
 }
+
 function renderRows(gameData) {
     let html = [];
     for (var i = 1; i <= gameData.numRounds; i++) {
