@@ -3,8 +3,8 @@ import { useState } from 'react';
 
 export function Home() {
     const [gameData, setGameData] = useState({
-        numPlayers: 1,
-        numRounds: 52,
+        numPlayers: 0,
+        numCards: 0,
         players: [],
     });
 
@@ -21,7 +21,7 @@ export function Home() {
 
         setGameData({
             numPlayers: gameData.numPlayers+1,
-            numRounds: getNumRounds(gameData.numPlayers+1),
+            numCards: getNumCards(gameData.numPlayers+1),
             players: gameData.players
         })
     }
@@ -31,7 +31,7 @@ export function Home() {
 
         setGameData({
             numPlayers: gameData.numPlayers-1,
-            numRounds: getNumRounds(gameData.numPlayers-1),
+            numCards: getNumCards(gameData.numPlayers-1),
             players: gameData.players
         })
     }
@@ -43,10 +43,11 @@ export function Home() {
                 value={newPlayer}/>
 
             <p>number of players: {gameData.numPlayers}</p>
-            <p>number of rounds: {gameData.numRounds}</p>
+            <p>number of rounds: {gameData.numCards*2}</p>
             <input 
                 type="button" 
                 onClick={() => handleAddPlayer()} 
+                disabled={numPlayersTooHigh(gameData.numPlayers)}
                 value="add player"/>
             <input 
                 type="button"
@@ -61,34 +62,67 @@ export function Home() {
 }
 
 function numPlayersTooLow(numPlayers) {
- if(numPlayers === 1)
- {
-     return true;
- }
- else
- {
-     return false;
- }
+    if(numPlayers === 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
-function renderCells(gameData, i) {
+function numPlayersTooHigh(numPlayers) {
+    if(numPlayers === 12)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+function renderCells(gameData, num) {
     return (
         gameData.players.map((player) =>
             <td key={gameData.players.indexOf(player)}>
-                {player.name}
+                {renderDropDown(num)}
+                {renderDropDown(num)}
             </td>
         )
     )
 }
-function renderRows(gameData) {
-    let html = [];
-    for (var i = 1; i <= gameData.numRounds; i++) {
-        html.push(
-            <tr key={i}>
-                <td>round {i}</td>
-                {renderCells(gameData, i)}
-            </tr>
+function renderDropDown(num) {
+    let options = [];
+    for (var i=0; i<=num; i++) {
+        options.push(
+            <option key={i}>{i}</option>
         )
     }
+    return (
+        <select className="form-control">
+            {options}
+        </select>
+    )
+}
+function renderRows(gameData) {
+    let html = [];
+    let cardDealPattern = [];
+    let round = 1;
+    for (var i = 1; i <= gameData.numCards; i++) {
+        cardDealPattern.push(i);
+    }
+    for (var j = gameData.numCards; j >= 1; j--) {
+        cardDealPattern.push(j);
+    }
+    cardDealPattern.forEach((num) => {
+        html.push(
+            <tr key={round}>
+                <td>round {round} ({num} cards)</td>
+                {renderCells(gameData, num)}
+            </tr>
+        )
+        round++;
+    });
     return html;
 }
 
@@ -112,7 +146,14 @@ function renderGameBoard(gameData) {
     return (html)
 }
 
-function getNumRounds(numPlayers) {
-    let numRounds = Math.floor(52/numPlayers);
-    return numRounds;
+function getNumCards(numPlayers) {
+    switch(numPlayers) {
+        case 0: 
+            return 0;
+        case 1:
+            return 0.5;
+        default:
+            let numCards = Math.floor(52/numPlayers);
+            return numCards;
+    }
 }
