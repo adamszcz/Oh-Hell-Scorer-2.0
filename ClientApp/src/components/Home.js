@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
+import { GameBoard } from './GameBoard'
 
 export function Home() {
     const [gameData, setGameData] = useState({
@@ -11,30 +12,79 @@ export function Home() {
     const [newPlayer, setNewPlayer] = useState("");
 
     function handleAddPlayer() {
-
         let player = {
             name: newPlayer,
-            score: 0
+            totalScore: 0,
+            bids: [],
+            tricks: [],
+            scores: []
         }
 
         gameData.players.push(player);
-
+        let newNumberOfCards = getNumCards(gameData.numPlayers+1);
+        gameData.players.forEach((player) => {
+            initScoringData(player, newNumberOfCards);
+        });
         setGameData({
             numPlayers: gameData.numPlayers+1,
-            numCards: getNumCards(gameData.numPlayers+1),
+            numCards: newNumberOfCards,
             players: gameData.players
         })
     }
     function handleRemovePlayer() {
-
         gameData.players.pop();
-
+        let newNumberOfCards = getNumCards(gameData.numPlayers-1);
+        gameData.players.forEach((player) => {
+            initScoringData(player, newNumberOfCards);
+        });
         setGameData({
             numPlayers: gameData.numPlayers-1,
-            numCards: getNumCards(gameData.numPlayers-1),
+            numCards: newNumberOfCards,
             players: gameData.players
         })
     }
+    function initScoringData(player, numCards) {
+        player.bids = [];
+        player.tricks = [];
+        player.scores = [];
+        for (var i=1; i<=(numCards*2); i++) {
+            player.bids.push(0);
+            player.tricks.push(0);
+            player.scores.push(0);
+        }
+    }
+    function numPlayersTooLow() {
+        if(gameData.numPlayers === 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    function numPlayersTooHigh() {
+        if(gameData.numPlayers === 12)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    function getNumCards(numPlayers) {
+        switch(numPlayers) {
+            case 0: 
+                return 0;
+            case 1:
+                return 0.5;
+            default:
+                let numCards = Math.floor(52/(numPlayers));
+                return numCards;
+        }
+    }
+
     return (
         <div>
             <input 
@@ -55,105 +105,10 @@ export function Home() {
                 disabled={numPlayersTooLow(gameData.numPlayers)}
                 value="remove player"/>
             <div>
-                {renderGameBoard(gameData)}
+                {GameBoard(gameData)}
             </div>
         </div>
     )
 }
 
-function numPlayersTooLow(numPlayers) {
-    if(numPlayers === 0)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-function numPlayersTooHigh(numPlayers) {
-    if(numPlayers === 12)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-function renderCells(gameData, num) {
-    return (
-        gameData.players.map((player) =>
-            <td key={gameData.players.indexOf(player)}>
-                {renderDropDown(num)}
-                {renderDropDown(num)}
-            </td>
-        )
-    )
-}
-function renderDropDown(num) {
-    let options = [];
-    for (var i=0; i<=num; i++) {
-        options.push(
-            <option key={i}>{i}</option>
-        )
-    }
-    return (
-        <select className="form-control">
-            {options}
-        </select>
-    )
-}
-function renderRows(gameData) {
-    let html = [];
-    let cardDealPattern = [];
-    let round = 1;
-    for (var i = 1; i <= gameData.numCards; i++) {
-        cardDealPattern.push(i);
-    }
-    for (var j = gameData.numCards; j >= 1; j--) {
-        cardDealPattern.push(j);
-    }
-    cardDealPattern.forEach((num) => {
-        html.push(
-            <tr key={round}>
-                <td>round {round} ({num} cards)</td>
-                {renderCells(gameData, num)}
-            </tr>
-        )
-        round++;
-    });
-    return html;
-}
 
-function renderGameBoard(gameData) {
-    let html;
-    if (gameData.players.length > 0) {
-        html = <table className="table">
-                    <thead className="thead"> 
-                        <tr>
-                            <th></th>
-                            {gameData.players.map((player) =>
-                                <th key={gameData.players.indexOf(player) + "head"}>{player.name}</th>    
-                            )}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {renderRows(gameData)}
-                    </tbody>
-                </table>
-    }
-    return (html)
-}
-
-function getNumCards(numPlayers) {
-    switch(numPlayers) {
-        case 0: 
-            return 0;
-        case 1:
-            return 0.5;
-        default:
-            let numCards = Math.floor(52/numPlayers);
-            return numCards;
-    }
-}
